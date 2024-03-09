@@ -34,6 +34,7 @@ int gMapHeight = 9;
 #define TAB(X,Y) vdp_cursor_tab(X,Y)
 
 bool debug = false;
+bool bShow2D = true;
 
 typedef struct {
 	float x;
@@ -95,7 +96,6 @@ int main(/*int argc, char *argv[]*/)
 
 	game_loop();
 
-my_exit:
 	vdp_mode(0);
 	vdp_logical_scr_dims(true);
 	vdp_cursor_enable( true );
@@ -107,8 +107,11 @@ void game_loop()
 	int exit=0;
 	key_wait_ticks = clock();
 
-	show_map2d();
-	show_player2d();
+	if (bShow2D)
+	{
+		show_map2d();
+		show_player2d();
+	}
 	do {
 		int move_dir = -1;
 		int view_dir = -1;
@@ -144,10 +147,29 @@ void game_loop()
 				}
 			}
 
-			show_map2d();
-			show_player2d();
+			if (bShow2D)
+			{
+				show_map2d();
+				show_player2d();
+			}
 		}
 
+		if ( vdp_check_key_press( KEY_m ) ) // m
+		{
+			if ( key_wait_ticks < clock() )
+			{
+				key_wait_ticks = clock() + key_wait;
+				bShow2D = !bShow2D;
+
+				if (!bShow2D) {
+					vdp_clear_screen();
+				} else {
+					show_map2d();
+					show_player2d();
+				}
+
+			}
+		}
 		if ( vdp_check_key_press( KEY_x ) ) { // x
 			exit=1;
 		}
