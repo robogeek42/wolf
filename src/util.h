@@ -93,6 +93,8 @@
 #define KEY_lt 0x6E
 #define KEY_gt 0x6F
 
+#define MIN(a,b) (((a)<(b))?(a):(b))
+#define MAX(a,b) (((a)>(b))?(a):(b))
 
 typedef struct {
 	char fname[20];
@@ -121,5 +123,6 @@ void draw_box2(int x,int y, int w, int h, int col);
 void draw_corners(int x1,int y1, int x2, int y2, int col);
 void draw_filled_box(int x1,int y1, int x2, int y2, int col, int bgcol);
 void draw_filled_box2(int x,int y, int w, int h, int col, int bgcol);
+void draw_filled_box_centre(int x,int y, int w, int h, int col, int bgcol);
 
 #endif

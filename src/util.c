@@ -236,3 +236,13 @@ void draw_filled_box(int x,int y, int w, int h, int col, int bgcol)
 	}
 }
 
+void draw_filled_box_centre(int x,int y, int w, int h, int col, int bgcol)
+{
+	int x1 = x-w/2;
+	int x2 = x+w/2;
+	int y1 = y-h/2;
+	int y2 = y+h/2;
+
+	draw_filled_box(x1, y1, x2-x1, y2-y1, col, bgcol);
+}
+

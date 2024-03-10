@@ -2,6 +2,7 @@
   vim:ts=4
   vim:sw=4
 */
+#include "globals.h"
 #include "colmap.h"
 
 #include "agon/vdp_vdu.h"
@@ -15,31 +16,28 @@
 #include <time.h>
 #include <stdbool.h>
 #include "util.h"
+#include "raycasting.h"
 
 int gMode = 8; 
-int gScreenWidth = 320;
-int gScreenHeight = 240;
+int gScreenWidth = SWIDTH;
+int gScreenHeight = SHEIGHT;
 
 int gMapWidth = 16;
 int gMapHeight = 9;
+
+float gScreenDist = 0;
 
 #define UP 0
 #define RIGHT 1
 #define DOWN 2
 #define LEFT 3
 
-#define TILESIZE 16
 
 #define COL(C) vdp_set_text_colour(C)
 #define TAB(X,Y) vdp_cursor_tab(X,Y)
 
 bool debug = false;
 bool bShow2D = true;
-
-typedef struct {
-	float x;
-	float y;
-} FVEC;
 
 // player
 FVEC player_pos = {1.5f,1.5f};
@@ -72,6 +70,7 @@ void show_player2d();
 
 void player_move(float x, float y);
 void player_moveDir(int d);
+void raycast_update();
 
 // ----------------------------------
 void wait()
@@ -92,6 +91,10 @@ int main(/*int argc, char *argv[]*/)
 	vdp_logical_scr_dims(false);
 	//vdu_set_graphics_viewport()
 
+	gScreenDist = HALF_SW / tan(HALF_FOV);
+	printf("%dx%d NUM_RAYS %d PSCALE %d\n",SWIDTH, SHEIGHT, NUM_RAYS, PSCALE);
+	wait();
+
 	load_images();
 
 	game_loop();
@@ -111,6 +114,8 @@ void game_loop()
 	{
 		show_map2d();
 		show_player2d();
+	} else {
+		raycast_update();
 	}
 	do {
 		int move_dir = -1;
@@ -151,6 +156,8 @@ void game_loop()
 			{
 				show_map2d();
 				show_player2d();
+			} else {
+				raycast_update();
 			}
 		}
 
@@ -163,7 +170,9 @@ void game_loop()
 
 				if (!bShow2D) {
 					vdp_clear_screen();
+					raycast_update();
 				} else {
+					vdp_clear_screen();
 					show_map2d();
 					show_player2d();
 				}
@@ -240,4 +249,9 @@ void player_move(float x, float y)
 	if (y>0 && player_pos.y<gMapHeight) { player_pos.y += y;} 
 	if (x<0 && player_pos.x>0) { player_pos.x += x;} 
 	if (y<0 && player_pos.y>0) { player_pos.y += y;} 
+}
+
+void raycast_update()
+{
+	cast(&player_pos, player_angle, basemap);
 }
