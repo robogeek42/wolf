@@ -26,7 +26,7 @@
 bool debug = false;
 bool bShow2D = true;
 
-int gMode = 8;//+128; 
+int gMode = 8+128; 
 int gScreenWidth = 320;
 int gScreenHeight = 240;
 int gTileSize = 8;
@@ -103,7 +103,7 @@ int main(/*int argc, char *argv[]*/)
 
 	gHalfScreenWidth = gScreenWidth/2;
 	gHalfScreenHeight = gScreenHeight/2;
-	gfPScale = 2.0;
+	gfPScale = 4.0;
 	gfPScaleY = 1;
 	gNumRays = gScreenWidth / gfPScale;
 	gHalfNumRays = gNumRays / 2;
@@ -286,7 +286,7 @@ void player_moveDir(int d)
 }
 
 void player_move(float x, float y)
-																			   {
+{
 	if (x>0 && player_pos.x < (gMapWidth-1)) { player_pos.x += x;} 
 	if (y>0 && player_pos.y < (gMapHeight-1)) { player_pos.y += y;} 
 	if (x<0 && player_pos.x > 1) { player_pos.x += x;} 
