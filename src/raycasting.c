@@ -123,12 +123,12 @@ void cast(FVEC *player_pos, float player_angle, uint8_t *basemap)
 		// // 3D cast - simple shaded rectangle
 		// int depth_col = 255 / (1+depth)*3;
 		//fill(depth_col);noStroke(); //stroke(100);strokeWeight(1);
-		int col = texture_vert;
+		int col = tex;
 		draw_filled_box_centre(ray * PSCALE, HALF_SH, PSCALE, proj_height,col,col);
 		
 		ray_angle += DELTA_ANGLE * RAY_STEP;
 	}
-	TAB(0,0);printf("%.3f %.3f,%.3f %.1f,%.1f\n",player_angle,ox,oy,x_map,y_map);	
+	//TAB(0,0);printf("%.3f %.3f,%.3f %.1f,%.1f\n",player_angle,ox,oy,x_map,y_map);	
 }
 
 /*
