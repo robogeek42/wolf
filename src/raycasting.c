@@ -14,9 +14,9 @@ void cast(FVEC *player_pos, float player_angle, uint8_t *basemap)
 	uint8_t texture_hor = 1;
 	//this.cast_result = [];
 	
-	float ray_angle = player_angle - HALF_FOV + 0.01;
+	float ray_angle = player_angle - gfHalfFOV + 0.01;
 
-	for (int ray=0; ray<NUM_RAYS; ray+=RAY_STEP) {
+	for (int ray=0; ray<gNumRays; ray+=gRayStep) {
 		float sin_a = sin(ray_angle);
 		float cos_a = cos(ray_angle);
 
@@ -39,7 +39,7 @@ void cast(FVEC *player_pos, float player_angle, uint8_t *basemap)
 		float delta_depth = dy / sin_a;
 		float dx = delta_depth * cos_a;			
 		
-		for (int i=0; i<MAX_DEPTH; i++) {
+		for (int i=0; i<gMaxDepth; i++) {
 			int mx = MAX(0,MIN(gMapWidth -1, (int)floorf(x_hor)));
 			int my = MAX(0,MIN(gMapHeight -1, (int)floorf(y_hor)));
 			if (basemap[my*gMapWidth + mx] > 0) {
@@ -71,7 +71,7 @@ void cast(FVEC *player_pos, float player_angle, uint8_t *basemap)
 		delta_depth = dx / cos_a;
 		dy = delta_depth * sin_a;
 
-		for (int i=0; i<MAX_DEPTH; i++) {
+		for (int i=0; i<gMaxDepth; i++) {
 			int mx = MAX(0,MIN(gMapWidth -1, (int)floorf(x_vert)));
 			int my = MAX(0,MIN(gMapHeight -1, (int)floorf(y_vert)));
 			//text("lookup "+mx+","+my, 400,370+i*8);
@@ -115,8 +115,8 @@ void cast(FVEC *player_pos, float player_angle, uint8_t *basemap)
 		depth *= cos(player_angle - ray_angle);
 		
 		// projection
-		float proj_height = PSCALEY * gScreenDist / (depth +0.001);
-		//printf("%d: %d %f\n",ray, ray*PSCALE,  proj_height);
+		float proj_height = gfPScaleY * gfScreenDist / (depth +0.001);
+		//printf("%d: %d %f\n",ray, ray*gfPScale,  proj_height);
 
 		//this.cast_result.push({r:ray, d:depth, p:abs(proj_height), t:tex, o:offset});
 		
@@ -124,9 +124,9 @@ void cast(FVEC *player_pos, float player_angle, uint8_t *basemap)
 		// int depth_col = 255 / (1+depth)*3;
 		//fill(depth_col);noStroke(); //stroke(100);strokeWeight(1);
 		int col = tex;
-		draw_filled_box_centre(ray * PSCALE, HALF_SH, PSCALE, proj_height,col,col);
+		draw_filled_box_centre(ray * gfPScale, gHalfScreenHeight, gfPScale, proj_height,col,col);
 		
-		ray_angle += DELTA_ANGLE * RAY_STEP;
+		ray_angle += gfDeltaAngle * gRayStep;
 	}
 	//TAB(0,0);printf("%.3f %.3f,%.3f %.1f,%.1f\n",player_angle,ox,oy,x_map,y_map);	
 }

@@ -18,20 +18,6 @@
 #include "util.h"
 #include "raycasting.h"
 
-int gMode = 8; 
-int gScreenWidth = SWIDTH;
-int gScreenHeight = SHEIGHT;
-
-int gMapWidth = 16;
-int gMapHeight = 9;
-
-float gScreenDist = 0;
-
-bool bMapRight = true;
-bool bMapBottom = true;
-int mapxoff = 0;
-int mapyoff = 0;
-
 #define UP 0
 #define RIGHT 1
 #define DOWN 2
@@ -40,16 +26,35 @@ int mapyoff = 0;
 bool debug = false;
 bool bShow2D = true;
 
+int gMode = 8;//+128; 
+int gScreenWidth = 320;
+int gScreenHeight = 240;
+int gTileSize = 8;
+int gHalfScreenWidth;
+int gHalfScreenHeight;
+
+float gfPScale;
+float gfPScaleY;
+float gfScreenDist;
+float gfDeltaAngle;
+float gfFOV;
+float gfHalfFOV;
+int gNumRays;
+int gHalfNumRays;
+int gRayStep;
+int gMaxDepth;
+
 // player
 FVEC player_pos = {1.5f,1.5f};
 float player_angle = M_PI/6.0f;
-
 
 // counters
 clock_t key_wait_ticks;
 
 int key_wait = 12;
 
+int gMapWidth = 16;
+int gMapHeight = 9;
 uint8_t basemap[16*9] = {
 1,1,1,5,1,1,5,1,1,5,1,1,5,1,1,1,
 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
@@ -61,6 +66,10 @@ uint8_t basemap[16*9] = {
 1,0,0,3,0,0,0,3,0,0,0,0,0,0,0,1,
 3,3,4,3,3,3,4,3,3,4,3,3,3,3,3,3
 };
+bool bMapRight = true;
+bool bMapBottom = true;
+int mapxoff = 0;
+int mapyoff = 0;
 
 // ----------------------------------
 void load_images();
@@ -92,17 +101,30 @@ int main(/*int argc, char *argv[]*/)
 	vdp_logical_scr_dims(false);
 	//vdu_set_graphics_viewport()
 
-	gScreenDist = HALF_SW / tan(HALF_FOV);
+	gHalfScreenWidth = gScreenWidth/2;
+	gHalfScreenHeight = gScreenHeight/2;
+	gfPScale = 2.0;
+	gfPScaleY = 1;
+	gNumRays = gScreenWidth / gfPScale;
+	gHalfNumRays = gNumRays / 2;
+	gfFOV = M_PI/3.0;
+	gfHalfFOV = gfFOV / 2;
+	gfDeltaAngle = gfFOV / gNumRays;
+	gfScreenDist = gHalfScreenWidth / tan(gfHalfFOV);
+	gNumRays = gScreenWidth / gfPScale;
+	gMaxDepth = 20;
+	gRayStep = 1;
+
 	//printf("%dx%d NUM_RAYS %d PSCALE %d\n",SWIDTH, SHEIGHT, NUM_RAYS, PSCALE);
 	//wait();
 
 	if (bMapRight)
 	{
-		mapxoff = gScreenWidth - (TILESIZE*gMapWidth);
+		mapxoff = gScreenWidth - (gTileSize*gMapWidth);
 	}
 	if (bMapBottom)
 	{
-		mapyoff = gScreenHeight - (TILESIZE*gMapHeight);
+		mapyoff = gScreenHeight - (gTileSize*gMapHeight);
 	}
     
 	load_images();
@@ -126,6 +148,7 @@ void game_loop()
 		show_map2d();
 		show_player2d();
 	}
+	vdp_swap();
 	do {
 		int move_dir = -1;
 		int view_dir = -1;
@@ -168,6 +191,7 @@ void game_loop()
 				show_map2d();
 				show_player2d();
 			}
+			vdp_swap();
 		}
 
 		if ( vdp_check_key_press( KEY_m ) ) // m
@@ -184,7 +208,7 @@ void game_loop()
 					show_map2d();
 					show_player2d();
 				}
-
+				vdp_swap();
 			}
 		}
 		if ( vdp_check_key_press( KEY_x ) ) { // x
@@ -214,28 +238,30 @@ void show_map2d()
 	for (int y = 0; y<gMapHeight; y++) {
 		for (int x = 0; x<gMapWidth; x++) {
 			draw_filled_box(
-					mapxoff+x*TILESIZE, 
-					mapyoff+y*TILESIZE, 
-					TILESIZE, TILESIZE, 4, basemap[y*gMapWidth + x]);
+					mapxoff+x*gTileSize, 
+					mapyoff+y*gTileSize, 
+					gTileSize, gTileSize, 4, basemap[y*gMapWidth + x]);
 		}
 	}
 }
 
 void show_player2d()
 {
-	int boxsize = MAX(1,TILESIZE/8);
-	int linesize = MAX(8,TILESIZE);
+	int boxsize = MAX(1,gTileSize/8);
+	int linesize = MAX(8,gTileSize);
 
 	draw_box2(
-			mapxoff+player_pos.x*TILESIZE-boxsize/2, 
-			mapyoff+player_pos.y*TILESIZE-boxsize/2, 
+			mapxoff+player_pos.x*gTileSize-boxsize/2, 
+			mapyoff+player_pos.y*gTileSize-boxsize/2, 
 			boxsize, boxsize, 11);
+	// draw view direction
+	vdp_gcol(0, 6);
 	vdp_move_to(
-			mapxoff+player_pos.x*TILESIZE, 
-			mapyoff+player_pos.y*TILESIZE);
+			mapxoff+player_pos.x*gTileSize, 
+			mapyoff+player_pos.y*gTileSize);
 	vdp_line_to(
-			mapxoff+player_pos.x*TILESIZE+cos(player_angle)*linesize, 
-			mapyoff+player_pos.y*TILESIZE+sin(player_angle)*linesize);
+			mapxoff+player_pos.x*gTileSize+cos(player_angle)*linesize, 
+			mapyoff+player_pos.y*gTileSize+sin(player_angle)*linesize);
 }
 
 void player_moveDir(int d)
