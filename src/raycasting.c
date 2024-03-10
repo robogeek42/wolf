@@ -10,7 +10,6 @@ void cast(FVEC *player_pos, float player_angle, uint8_t *basemap)
 	float oy = player_pos->y; 
 	float x_map = floorf(ox);			// map position of top corner containing player
 	float y_map = floorf(oy);
-	
 	uint8_t texture_vert = 1;
 	uint8_t texture_hor = 1;
 	//this.cast_result = [];
@@ -124,11 +123,12 @@ void cast(FVEC *player_pos, float player_angle, uint8_t *basemap)
 		// // 3D cast - simple shaded rectangle
 		// int depth_col = 255 / (1+depth)*3;
 		//fill(depth_col);noStroke(); //stroke(100);strokeWeight(1);
-		int col = texture_vert*2;
+		int col = texture_vert;
 		draw_filled_box_centre(ray * PSCALE, HALF_SH, PSCALE, proj_height,col,col);
 		
 		ray_angle += DELTA_ANGLE * RAY_STEP;
 	}
+	TAB(0,0);printf("%.3f %.3f,%.3f %.1f,%.1f\n",player_angle,ox,oy,x_map,y_map);	
 }
 
 /*

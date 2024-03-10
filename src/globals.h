@@ -22,17 +22,17 @@ typedef struct {
 	float y;
 } FVEC;
 
-#define TILESIZE 16
+#define TILESIZE 6
 #define FOV M_PI/3.0
 #define HALF_FOV FOV/2.0
-#define NUM_RAYS SWIDTH/8
+#define NUM_RAYS SWIDTH/2
 #define HALF_NUM_RAYS NUM_RAYS/2
 #define DELTA_ANGLE FOV / NUM_RAYS
 #define MAX_DEPTH 20
 #define RAY_STEP 1
 
-#define PSCALE 8
-#define PSCALEY 4
+#define PSCALE 2
+#define PSCALEY 1
 
 
 #endif

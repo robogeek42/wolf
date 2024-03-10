@@ -27,14 +27,15 @@ int gMapHeight = 9;
 
 float gScreenDist = 0;
 
+bool bMapRight = true;
+bool bMapBottom = true;
+int mapxoff = 0;
+int mapyoff = 0;
+
 #define UP 0
 #define RIGHT 1
 #define DOWN 2
 #define LEFT 3
-
-
-#define COL(C) vdp_set_text_colour(C)
-#define TAB(X,Y) vdp_cursor_tab(X,Y)
 
 bool debug = false;
 bool bShow2D = true;
@@ -52,7 +53,7 @@ int key_wait = 12;
 uint8_t basemap[16*9] = {
 1,1,1,5,1,1,5,1,1,5,1,1,5,1,1,1,
 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
-1,0,0,1,1,1,1,0,0,0,1,1,1,0,0,1,
+1,0,0,2,1,1,1,0,0,0,1,1,1,0,0,1,
 1,0,0,0,0,0,1,0,0,0,0,0,2,0,0,1,
 1,0,0,0,0,0,1,0,0,0,0,0,2,0,0,1,
 1,0,0,1,1,1,1,0,0,0,0,0,0,0,0,1,
@@ -92,9 +93,18 @@ int main(/*int argc, char *argv[]*/)
 	//vdu_set_graphics_viewport()
 
 	gScreenDist = HALF_SW / tan(HALF_FOV);
-	printf("%dx%d NUM_RAYS %d PSCALE %d\n",SWIDTH, SHEIGHT, NUM_RAYS, PSCALE);
-	wait();
+	//printf("%dx%d NUM_RAYS %d PSCALE %d\n",SWIDTH, SHEIGHT, NUM_RAYS, PSCALE);
+	//wait();
 
+	if (bMapRight)
+	{
+		mapxoff = gScreenWidth - (TILESIZE*gMapWidth);
+	}
+	if (bMapBottom)
+	{
+		mapyoff = gScreenHeight - (TILESIZE*gMapHeight);
+	}
+    
 	load_images();
 
 	game_loop();
@@ -110,12 +120,11 @@ void game_loop()
 	int exit=0;
 	key_wait_ticks = clock();
 
+	raycast_update();
 	if (bShow2D)
 	{
 		show_map2d();
 		show_player2d();
-	} else {
-		raycast_update();
 	}
 	do {
 		int move_dir = -1;
@@ -152,12 +161,12 @@ void game_loop()
 				}
 			}
 
+			vdp_clear_screen();
+			raycast_update();
 			if (bShow2D)
 			{
 				show_map2d();
 				show_player2d();
-			} else {
-				raycast_update();
 			}
 		}
 
@@ -168,11 +177,10 @@ void game_loop()
 				key_wait_ticks = clock() + key_wait;
 				bShow2D = !bShow2D;
 
-				if (!bShow2D) {
-					vdp_clear_screen();
-					raycast_update();
-				} else {
-					vdp_clear_screen();
+				vdp_clear_screen();
+				raycast_update();
+				if (bShow2D)
+				{
 					show_map2d();
 					show_player2d();
 				}
@@ -203,29 +211,37 @@ void load_images()
 
 void show_map2d()
 {
-    int scl = TILESIZE;
-    
 	for (int y = 0; y<gMapHeight; y++) {
 		for (int x = 0; x<gMapWidth; x++) {
-			vdp_gcol(0, basemap[y*gMapWidth + x]);
-			draw_filled_box(x*scl, y*scl, scl, scl, 4, basemap[y*gMapWidth + x]*2);
+			draw_filled_box(
+					mapxoff+x*TILESIZE, 
+					mapyoff+y*TILESIZE, 
+					TILESIZE, TILESIZE, 4, basemap[y*gMapWidth + x]);
 		}
 	}
 }
 
 void show_player2d()
 {
-    int scl = TILESIZE;
+	int boxsize = MAX(1,TILESIZE/8);
+	int linesize = MAX(8,TILESIZE);
 
-	draw_box2(player_pos.x*scl-2, player_pos.y*scl-2, 4, 4, 11);
-	vdp_move_to(player_pos.x*scl, player_pos.y*scl);
-	vdp_line_to(player_pos.x*scl+cos(player_angle)*16, player_pos.y*scl+sin(player_angle)*16);
+	draw_box2(
+			mapxoff+player_pos.x*TILESIZE-boxsize/2, 
+			mapyoff+player_pos.y*TILESIZE-boxsize/2, 
+			boxsize, boxsize, 11);
+	vdp_move_to(
+			mapxoff+player_pos.x*TILESIZE, 
+			mapyoff+player_pos.y*TILESIZE);
+	vdp_line_to(
+			mapxoff+player_pos.x*TILESIZE+cos(player_angle)*linesize, 
+			mapyoff+player_pos.y*TILESIZE+sin(player_angle)*linesize);
 }
 
 void player_moveDir(int d)
 {
-	float c = 0.1 * cos(player_angle);
-	float s = 0.1 * sin(player_angle);
+	float c = 0.3 * cos(player_angle);
+	float s = 0.3 * sin(player_angle);
 
 	switch (d) {
 		case UP: // forward
@@ -244,11 +260,11 @@ void player_moveDir(int d)
 }
 
 void player_move(float x, float y)
-{
-	if (x>0 && player_pos.x<gMapWidth) { player_pos.x += x;} 
-	if (y>0 && player_pos.y<gMapHeight) { player_pos.y += y;} 
-	if (x<0 && player_pos.x>0) { player_pos.x += x;} 
-	if (y<0 && player_pos.y>0) { player_pos.y += y;} 
+																			   {
+	if (x>0 && player_pos.x < (gMapWidth-1)) { player_pos.x += x;} 
+	if (y>0 && player_pos.y < (gMapHeight-1)) { player_pos.y += y;} 
+	if (x<0 && player_pos.x > 1) { player_pos.x += x;} 
+	if (y<0 && player_pos.y > 1) { player_pos.y += y;} 
 }
 
 void raycast_update()

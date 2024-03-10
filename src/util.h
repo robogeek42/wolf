@@ -96,6 +96,9 @@
 #define MIN(a,b) (((a)<(b))?(a):(b))
 #define MAX(a,b) (((a)>(b))?(a):(b))
 
+#define COL(C) vdp_set_text_colour(C)
+#define TAB(X,Y) vdp_cursor_tab(X,Y)
+
 typedef struct {
 	char fname[20];
 	uint8_t id;
