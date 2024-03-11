@@ -5,6 +5,7 @@
 #ifndef _GLOBALS_H
 #define _GLOBALS_H
 
+#include "stdbool.h"
 
 extern int gMode;
 extern int gScreenWidth;
@@ -26,6 +27,11 @@ extern int gNumRays;
 extern int gHalfNumRays;
 extern int gRayStep;
 extern int gMaxDepth;
+
+extern bool bTextured;
+
+extern int gMinTexHeight;
+extern int gMaxTexHeight;
 
 typedef struct {
 	float x;

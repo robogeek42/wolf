@@ -119,12 +119,32 @@ void cast(FVEC *player_pos, float player_angle, uint8_t *basemap)
 		//printf("%d: %d %f\n",ray, ray*gfPScale,  proj_height);
 
 		//this.cast_result.push({r:ray, d:depth, p:abs(proj_height), t:tex, o:offset});
-		
-		// // 3D cast - simple shaded rectangle
-		// int depth_col = 255 / (1+depth)*3;
-		//fill(depth_col);noStroke(); //stroke(100);strokeWeight(1);
-		int col = tex;
-		draw_filled_box_centre(ray * gfPScale, gHalfScreenHeight, gfPScale, proj_height,col,col);
+
+		if (bTextured)
+		{
+			if (proj_height<=gMaxTexHeight && proj_height>=gMinTexHeight)
+			{
+				int bmOffset=0;
+				int imgWidth = (int)gfPScale;
+				if (imgWidth==4)
+				{
+					bmOffset=256;
+				}
+				vdp_adv_select_bitmap(proj_height+bmOffset);
+				vdp_draw_bitmap(ray * gfPScale - gfPScale/2, gHalfScreenHeight - proj_height/2);
+			}
+			else
+			{
+				// grey box
+				draw_filled_box_centre(ray * gfPScale, gHalfScreenHeight, gfPScale, proj_height,8,8);
+			}
+		}
+		else 
+		{
+			// // 3D cast - simple shaded rectangle
+			int col = tex;
+			draw_filled_box_centre(ray * gfPScale, gHalfScreenHeight, gfPScale, proj_height,col,col);
+		}
 		
 		ray_angle += gfDeltaAngle * gRayStep;
 	}

@@ -111,7 +111,7 @@ int load_bitmap_file( const char *fname, int width, int height, int bmap_id )
 		return -1;
 	}
 
-	vdp_adv_clear_buffer(0xFA00+bmap_id);
+	vdp_adv_clear_buffer(bmap_id);
 
 	bytes_remain = width * height;
 
@@ -119,7 +119,7 @@ int load_bitmap_file( const char *fname, int width, int height, int bmap_id )
 	{
 		int size = (bytes_remain>CHUNK_SIZE)?CHUNK_SIZE:bytes_remain;
 
-		vdp_adv_write_block(0xFA00+bmap_id, size);
+		vdp_adv_write_block(bmap_id, size);
 
 		if ( fread( buffer, 1, size, fp ) != (size_t)size ) return 0;
 		mos_puts( buffer, size, 0 );
@@ -127,9 +127,9 @@ int load_bitmap_file( const char *fname, int width, int height, int bmap_id )
 
 		bytes_remain -= size;
 	}
-	vdp_adv_consolidate(0xFA00+bmap_id);
+	vdp_adv_consolidate(bmap_id);
 
-	vdp_adv_select_bitmap(0xFA00+bmap_id);
+	vdp_adv_select_bitmap(bmap_id);
 	vdp_adv_bitmap_from_buffer(width, height, 1); // RGBA2
 	
 	fclose( fp );
