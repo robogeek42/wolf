@@ -190,16 +190,7 @@ int readTileInfoFile(char *path, TileInfoFile *tif, int items)
 	return item;
 }
 
-void draw_box(int x1,int y1, int x2, int y2, int col)
-{
-	vdp_gcol( 0, col );
-	vdp_move_to( x1, y1 );
-	vdp_line_to( x1, y2 );
-	vdp_line_to( x2, y2 );
-	vdp_line_to( x2, y1 );
-	vdp_line_to( x1, y1 );
-}
-void draw_box2(int x,int y, int w, int h, int col)
+void draw_box(int x,int y, int w, int h, int col)
 {
 	vdp_gcol( 0, col );
 	vdp_move_to( x, y );
@@ -350,3 +341,4 @@ float cosLU(float angle)
 	}
 	return 0;
 }
+

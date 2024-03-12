@@ -122,11 +122,9 @@ double my_atof(char *str);
 int load_bitmap_file( const char *fname, int width, int height, int bmap_id );
 int readTileInfoFile(char *path, TileInfoFile *tif, int items);
 
-void draw_box(int x1,int y1, int x2, int y2, int col);
-void draw_box2(int x,int y, int w, int h, int col);
+void draw_box(int x,int y, int w, int h, int col);
 void draw_corners(int x1,int y1, int x2, int y2, int col);
-void draw_filled_box(int x1,int y1, int x2, int y2, int col, int bgcol);
-void draw_filled_box2(int x,int y, int w, int h, int col, int bgcol);
+void draw_filled_box(int x,int y, int w, int h, int col, int bgcol);
 void draw_filled_box_centre(int x,int y, int w, int h, int col, int bgcol);
 
 extern float *sinLUT;
@@ -136,4 +134,7 @@ extern float LUT_ANGLE_MULT;
 void pop_sin_lookup();
 float sinLU(float angle);
 float cosLU(float angle);
+
+void test_progbar();
+
 #endif

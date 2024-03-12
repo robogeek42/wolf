@@ -17,6 +17,7 @@
 #include <stdbool.h>
 #include "util.h"
 #include "raycasting.h"
+#include "progbar.h"
 
 #define UP 0
 #define RIGHT 1
@@ -89,7 +90,7 @@ int gMaxTexHeight = 256;
 int frame_ticks;
 
 // ----------------------------------
-bool load_images(int width, int bmOffset);
+bool load_images(int width, int bmOffset, bool progress);
 void game_loop();
 
 void show_map2d();
@@ -132,6 +133,9 @@ int main(/*int argc, char *argv[]*/)
 	vdp_logical_scr_dims(false);
 	//vdu_set_graphics_viewport()
 
+	//test_progbar();
+	//wait();
+
 	TAB(0,0); COL(11);
 	printf("Wolf3D demo\n\n");
 	COL(15);
@@ -161,7 +165,7 @@ int main(/*int argc, char *argv[]*/)
 	int offset = 256*((imgWidth/2)-1);
 	COL(1);
 	printf("Loading images scale %f (w=%d, off=%d)\n",gfPScale, imgWidth, offset);
-	if( ! load_images(imgWidth, offset ))
+	if( ! load_images(imgWidth, offset, true ))
 	{
 		printf("Failed to load images scale %f\n",gfPScale);
 		wait();
@@ -180,6 +184,7 @@ int main(/*int argc, char *argv[]*/)
 		loaded4wide=true; 
 		//printf("loaded 4-wide\n");
 	}
+	TAB(0,18);
 	printf("Loading trig table\n");
 	pop_sin_lookup();
 
@@ -290,7 +295,7 @@ void game_loop()
 					{
 						printf("LOAD 4 WIDE IMAGES\n");
 						vdp_swap();
-						if (!load_images(4,256))
+						if (!load_images(4,256,false))
 						{
 							printf("Failed to load images scale %f\n",gfPScale);
 							vdp_swap();
@@ -307,7 +312,7 @@ void game_loop()
 						printf("LOAD 2 WIDE IMAGES\n");
 						vdp_swap();
 					
-						if (!load_images(2,0))
+						if (!load_images(2,0,false))
 						{
 							printf("Failed to load images scale %f\n",gfPScale);
 							vdp_swap();
@@ -349,7 +354,7 @@ void show_player2d()
 	int boxsize = MAX(1,gTileSize/8);
 	int linesize = MAX(8,gTileSize);
 
-	draw_box2(
+	draw_box(
 			mapxoff+player_pos.x*gTileSize-boxsize/2, 
 			mapyoff+player_pos.y*gTileSize-boxsize/2, 
 			boxsize, boxsize, 11);
@@ -412,19 +417,32 @@ void render_frame()
 	frame_ticks=clock()-t;
 }
 
-bool load_images(int width, int bmOffset) 
+bool load_images(int width, int bmOffset, bool progress) 
 {
 	if (width != 2 && width !=4) return false;
 	int ret = 0;
 	char fname[60];
+	PROGBAR *progbar;
+
+	if (progress)
+	{
+		progbar = init_horiz_bar(10,100,300,32,0,gMaxTexHeight,1,3);
+		
+		update_bar(progbar, 0);
+	}
 
 	for (int fn=gMinTexHeight; fn<=gMaxTexHeight; fn++)
 	{
 		sprintf(fname, "img/tex1_%dwide/gradblue%dx%03d.rgb2", width, width, fn);
 		ret = load_bitmap_file(fname, width, fn, fn+bmOffset);
 		if (ret <0) return false;
-		printf(".");
+		if (progress)
+		{
+			//printf(".");
+			if ((fn % 4) == 0) update_bar(progbar, fn);
+		}
 	}
+	if (progress) delete_bar(progbar);
 	return true;
 }
 
