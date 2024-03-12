@@ -14,6 +14,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <time.h>
+#include "assert.h"
 #include "util.h"
 
 #define CHUNK_SIZE 1024
@@ -128,4 +129,11 @@ void draw_filled_box(int x1,int y1, int x2, int y2, int col, int bgcol);
 void draw_filled_box2(int x,int y, int w, int h, int col, int bgcol);
 void draw_filled_box_centre(int x,int y, int w, int h, int col, int bgcol);
 
+extern float *sinLUT;
+extern int LUTslots;
+extern float LUT_ANGLE_MULT;
+
+void pop_sin_lookup();
+float sinLU(float angle);
+float cosLU(float angle);
 #endif

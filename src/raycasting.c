@@ -17,8 +17,10 @@ void cast(FVEC *player_pos, float player_angle, uint8_t *basemap)
 	float ray_angle = player_angle - gfHalfFOV + 0.01;
 
 	for (int ray=0; ray<gNumRays; ray+=gRayStep) {
-		float sin_a = sin(ray_angle);
-		float cos_a = cos(ray_angle);
+		//float sin_a = sin(ray_angle);
+		//float cos_a = cos(ray_angle);
+		float sin_a = sinLU(ray_angle)+0.001;
+		float cos_a = cosLU(ray_angle)+0.001;
 
 		// intersections with horizontals
 		// x_hor and y_hot are point of intersection at next horizontal
@@ -116,13 +118,22 @@ void cast(FVEC *player_pos, float player_angle, uint8_t *basemap)
 		
 		// projection
 		float proj_height = gfPScaleY * gfScreenDist / (depth +0.001);
-		//printf("%d: %d %f\n",ray, ray*gfPScale,  proj_height);
+		if (proj_height<1)
+		{
+			printf("%d: %f %f %f\n",ray, gfScreenDist, depth,  proj_height);
+			printf("dv %f dh %f \n",depth_vert, depth_hor);
+			printf("A: %f sa %f ca %f \n",ray_angle, cos_a, sin_a);
+			vdp_swap();
+			exit(0);
+		}
 
 		//this.cast_result.push({r:ray, d:depth, p:abs(proj_height), t:tex, o:offset});
 
 		if (bTextured)
 		{
-			if (proj_height<=gMaxTexHeight && proj_height>=gMinTexHeight)
+			//if (proj_height<=gMaxTexHeight && proj_height>=gMinTexHeight)
+			proj_height= MIN(gMaxTexHeight, proj_height);
+			proj_height= MAX(gMinTexHeight, proj_height);
 			{
 				int bmOffset=0;
 				int imgWidth = (int)gfPScale;
@@ -133,11 +144,13 @@ void cast(FVEC *player_pos, float player_angle, uint8_t *basemap)
 				vdp_adv_select_bitmap(proj_height+bmOffset);
 				vdp_draw_bitmap(ray * gfPScale - gfPScale/2, gHalfScreenHeight - proj_height/2);
 			}
+			/*
 			else
 			{
 				// grey box
 				draw_filled_box_centre(ray * gfPScale, gHalfScreenHeight, gfPScale, proj_height,8,8);
 			}
+			*/
 		}
 		else 
 		{

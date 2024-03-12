@@ -15,7 +15,6 @@
 #include <time.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include "util.h"
 
 // Open file
 FILE *open_file( const char *fname, const char *mode )
@@ -244,3 +243,110 @@ void draw_filled_box_centre(int x,int y, int w, int h, int col, int bgcol)
 	draw_filled_box(x1, y1, w, h, col, bgcol);
 }
 
+void pop_sin_lookup()
+{
+	LUT_ANGLE_MULT = LUTslots / M_PI_2;
+	sinLUT = (float*) malloc(LUTslots*sizeof(float));
+	if (!sinLUT)
+	{
+		printf("out of memory\n");
+		exit(-1);
+	}
+	float angle = 0.0f;
+	float inc = M_PI_2/LUTslots;
+	int index=0;
+	while ( index < LUTslots )
+	{
+		sinLUT[index++] = sin(angle);
+		angle += inc;
+	}
+}
+
+float sinLU(float angle)
+{
+	int ind;
+	if (!sinLUT) return 0;
+	while (angle>M_PI*2)
+	{
+		angle -= M_PI*2;
+	}
+	while (angle < 0.0f)
+	{
+		angle += M_PI*2;
+	}
+	if (angle > -0.005 && angle < 0.005) return 0.0f;
+	if (angle > M_PI_2-0.005 && angle < M_PI_2+0.005) return 1.0f;
+	if (angle > M_PI-0.005 && angle < M_PI+0.005) return 0.0f;
+	if (angle > M_PI+M_PI_2-0.005 && angle < M_PI+M_PI_2+0.005) return -1.0f;
+	if (angle > M_PI+M_PI-0.005 && angle < M_PI+M_PI+0.005) return 0.0f;
+	if (angle < M_PI_2)
+	{
+		ind = (int) floorf(angle * LUT_ANGLE_MULT);
+		assert(ind < LUTslots);
+		return sinLUT[ind];
+	}
+	if (angle < M_PI)
+	{
+		ind = (int) floorf((M_PI- angle) * LUT_ANGLE_MULT);
+		assert(ind < LUTslots);
+		return sinLUT[ind];
+	}
+	angle -= M_PI;
+	if (angle < M_PI_2)
+	{
+		ind = (int) floorf(angle * LUT_ANGLE_MULT);
+		assert(ind < LUTslots);
+		return -1.0f*sinLUT[ind];
+	}
+	if (angle < M_PI)
+	{
+		ind = (int) floorf((M_PI - angle) * LUT_ANGLE_MULT);
+		assert(ind < LUTslots);
+		return -1.0f*sinLUT[ind];
+	}
+	return 0;
+}
+float cosLU(float angle)
+{
+	int ind;
+	if (!sinLUT) return 0;
+	while (angle>M_PI*2)
+	{
+		angle -= M_PI*2;
+	}
+	while (angle < 0.0f)
+	{
+		angle += M_PI*2;
+	}
+	if (angle > -0.005 && angle < 0.005) return 1.0f;
+	if (angle > M_PI_2-0.005 && angle < M_PI_2+0.005) return 0.0f;
+	if (angle > M_PI-0.005 && angle < M_PI+0.005) return -1.0f;
+	if (angle > M_PI+M_PI_2-0.005 && angle < M_PI+M_PI_2+0.005) return 0.0f;
+	if (angle > M_PI+M_PI-0.005 && angle < M_PI+M_PI+0.005) return 1.0f;
+	if (angle < M_PI_2)
+	{
+		ind = (int) floorf((M_PI_2 - angle) * LUT_ANGLE_MULT);
+		assert(ind < LUTslots);
+		return sinLUT[ind];
+	}
+	if (angle < M_PI)
+	{
+		ind = (int) floorf((angle - M_PI_2) * LUT_ANGLE_MULT);
+		assert(ind < LUTslots);
+		return -1.0f*sinLUT[ind];
+	}
+	angle -= M_PI;
+	if (angle < M_PI_2)
+	{
+		ind = (int) floorf((M_PI_2 - angle) * LUT_ANGLE_MULT);
+		assert(ind < LUTslots);
+		return -1.0f*sinLUT[ind];
+	}
+	if (angle < M_PI)
+	{
+		ind = (int) floorf((angle - M_PI_2) * LUT_ANGLE_MULT);
+		assert(ind < LUTslots);
+		return sinLUT[ind];
+	}
+	return 0;
+}

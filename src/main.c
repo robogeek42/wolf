@@ -49,6 +49,10 @@ float gfHalfFOV;
 int gNumRays;
 int gHalfNumRays;
 
+float *sinLUT;
+int LUTslots = 200;
+float LUT_ANGLE_MULT;
+
 // player - starting position and direction
 FVEC player_pos = {1.5f,1.5f};
 float player_angle = M_PI/6.0f;
@@ -82,6 +86,8 @@ bool loaded4wide = false;
 int gMinTexHeight = 7;
 int gMaxTexHeight = 256;
 
+int frame_ticks;
+
 // ----------------------------------
 bool load_images(int width, int bmOffset);
 void game_loop();
@@ -92,7 +98,9 @@ void show_player2d();
 void player_move(float x, float y);
 void player_moveDir(int d);
 void raycast_update();
+void render_frame();
 void test_images();
+void test_sin_lookup();
 
 // ----------------------------------
 void wait()
@@ -172,12 +180,16 @@ int main(/*int argc, char *argv[]*/)
 		loaded4wide=true; 
 		//printf("loaded 4-wide\n");
 	}
+	printf("Loading trig table\n");
+	pop_sin_lookup();
 
 	COL(15);
 	printf("\nPress any key\n");
 	wait();
 	vdp_clear_screen();
 	//test_images();
+	//wait();
+	//test_sin_lookup();
 	//wait();
 
 	// go double buffered
@@ -196,13 +208,7 @@ void game_loop()
 	int exitLoop=0;
 	key_wait_ticks = clock();
 
-	raycast_update();
-	if (bShow2D)
-	{
-		show_map2d();
-		show_player2d();
-	}
-	vdp_swap();
+	render_frame();
 	do {
 		int move_dir = -1;
 		int view_dir = -1;
@@ -255,14 +261,7 @@ void game_loop()
 				key_wait_ticks = clock() + key_wait;
 				bShow2D = !bShow2D;
 
-				vdp_clear_screen();
-				raycast_update();
-				if (bShow2D)
-				{
-					show_map2d();
-					show_player2d();
-				}
-				vdp_swap();
+				render_frame();
 			}
 		}
 		if ( vdp_check_key_press( KEY_t ) ) // to to switch to "textured" mode
@@ -271,14 +270,7 @@ void game_loop()
 			{
 				key_wait_ticks = clock() + key_wait;
 				bTextured = !bTextured;
-				vdp_clear_screen();
-				raycast_update();
-				if (bShow2D)
-				{
-					show_map2d();
-					show_player2d();
-				}
-				vdp_swap();
+				render_frame();
 			}
 		}
 		if ( vdp_check_key_press( KEY_p ) ) // change slice width
@@ -326,13 +318,7 @@ void game_loop()
 					}
 				}
 
-				vdp_clear_screen();
-				raycast_update();
-				if (bShow2D)
-				{
-					show_map2d();
-					show_player2d();
-				}
+				render_frame();
 				vdp_swap();
 			}
 		}
@@ -409,7 +395,21 @@ void player_move(float x, float y)
 void raycast_update()
 {
 	cast(&player_pos, player_angle, basemap);
-	TAB(37,0);printf("P=%.0f",gfPScale);
+	TAB(32,0);printf("F=%d",frame_ticks);
+}
+
+void render_frame()
+{
+	clock_t t = clock();
+	vdp_clear_screen();
+	raycast_update();
+	if (bShow2D)
+	{
+		show_map2d();
+		show_player2d();
+	}
+	vdp_swap();
+	frame_ticks=clock()-t;
 }
 
 bool load_images(int width, int bmOffset) 
@@ -444,3 +444,38 @@ void test_images()
 	}
 }
 
+void test_sin_lookup()
+{
+	float angle = 0.0;
+	float inc = (M_PI*2)/gScreenWidth;
+	int x = 0;
+	if (sinLUT == NULL)
+	{
+		printf("No look-up table\n");
+	}
+	while (angle<2*M_PI)
+	{
+		vdp_gcol(0,1);
+		float s = sinLU(angle);
+		vdp_point(x,gHalfScreenHeight - s*gHalfScreenHeight);
+		vdp_gcol(0,2);
+		vdp_point(x,gHalfScreenHeight - cosLU(angle)*gHalfScreenHeight);
+		x++; angle+=inc;
+	}
+	/*
+	wait();
+	for (float angle = -0.1; angle <= M_PI*2+0.1; angle+=0.002)
+	{
+		float diff=fabs(sin(angle)-sinLU(angle));
+		if (diff > 0.01)
+		{
+			printf("SIN %f : %f\n",angle, diff);
+		}
+		diff=fabs(cos(angle)-cosLU(angle));
+		if (diff > 0.01)
+		{
+			printf("COS %f : %f\n",angle, diff);
+		}
+	}
+	*/
+}
